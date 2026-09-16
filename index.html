@@ -97,29 +97,10 @@
     }
   }
 
-  /* ---- phones only: the single-column item layout is tuned for this
-     narrow a width. Wider tablet windows in the block above just flow
-     freely like the cover — forcing 100dvh there made the (much wider,
-     so much taller) photo overflow badly. ---- */
-  @media (max-width:600px){
-    html, body{ scroll-snap-type:y proximity; }
-    .page.item{
-      height:100dvh;
-      overflow-y:auto;
-      scroll-snap-align:start;
-      scroll-snap-stop:always;
-    }
-    /* Kuchikomi holds 7 review cards, not one product photo — forcing it
-       into one screen either crushes every card unreadably small or (as
-       shipped) just silently overflows by ~900px. Let it flow like the
-       cover instead: normal length, normal scroll, no snap. */
-    .page.item.kuchikomi{
-      height:auto;
-      overflow-y:visible;
-      scroll-snap-align:none;
-      scroll-snap-stop:normal;
-    }
-  }
+  /* Forcing every item page into exactly 100dvh (with snap) kept clipping
+     content and behaving oddly across real phones. Every page now just
+     flows to whatever height its content needs, same as the cover —
+     nothing gets cut off, and a plain vertical scroll is all it needs. */
 
   .page-inner{
     max-width:1080px;
@@ -249,7 +230,7 @@
     50%{ transform:translateY(5px); }
   }
   @media (max-width:600px){
-    .cover-fv .fv-content{ padding:0 24px 48px; }
+    .cover-fv .fv-content{ padding:0 24px 90px; }
     .cover-fv .fv-headline{ font-size:clamp(26px, 8vw, 36px); line-height:1.5; }
   }
   @media (prefers-reduced-motion: reduce){
@@ -629,9 +610,6 @@
   }
   .shop-home:hover{ background:var(--paper); }
   .shop-home svg{ width:14px; height:14px; flex:0 0 auto; }
-  @media (max-width:560px){
-    .shop-home{ font-size:11px; padding:8px 13px 8px 10px; top:64px; }
-  }
 
   .toc-jump{
     position:fixed;
@@ -817,6 +795,50 @@
       border-radius:0;
       padding:0;
     }
+
+    /* The PC toolbar (zoom, prev/next page-turn) and the floating page
+       count don't mean anything once the page just scrolls normally —
+       drop them rather than leave inert controls sitting on screen. */
+    .toolbar,
+    .count-pill{
+      display:none;
+    }
+
+    /* Shop-home and the index ("一覧") button become one fixed footer bar
+       instead of floating pills — the old top-right placement for
+       shop-home read as randomly positioned once there was no toolbar
+       to relate it to. */
+    .shop-home,
+    .toc-jump{
+      position:fixed;
+      top:auto;
+      left:0;
+      right:auto;
+      bottom:0;
+      width:50%;
+      height:58px;
+      margin:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      background:#fff;
+      border:none;
+      border-top:1px solid var(--line);
+      border-radius:0;
+      box-shadow:0 -6px 16px rgba(34,28,23,0.06);
+      padding:0 12px calc(0px + env(safe-area-inset-bottom));
+      opacity:1;
+      transform:none;
+      pointer-events:auto;
+      z-index:16;
+    }
+    .shop-home{
+      left:auto;
+      right:0;
+      border-left:1px solid var(--line);
+    }
+    .toc-jump .num{ display:none; }
   }
 
   @media (max-width:600px){
@@ -863,7 +885,7 @@
 
   /* ---- phones: tighter sizing so the page fits the actual screen, not just the tablet breakpoint ---- */
   @media (max-width:600px){
-    .cover .page-inner{ padding-top:64px; padding-bottom:32px; }
+    .cover .page-inner{ padding-top:64px; padding-bottom:90px; }
     .cover h1{ font-size:clamp(22px, 7vw, 30px); line-height:1.38; margin:0 0 8px; }
     .cover .lede{ font-size:13.5px; padding-left:12px; }
     .cover-bottom{ margin-top:12px; }
@@ -875,7 +897,7 @@
     .toc button .label .n{ font-size:16px; }
     .toc button .label .t{ font-size:11.5px; }
 
-    .item .page-inner{ padding-top:44px; padding-bottom:32px; }
+    .item .page-inner{ padding-top:44px; padding-bottom:90px; }
     .item-grid{ gap:8px; }
     .item-photo-wrap{ padding:6px 6px 16px; }
     .item-photo{ aspect-ratio:16/8; }
@@ -1656,32 +1678,6 @@
   window.addEventListener('resize', () => {
     if (!isStackedLayout()) goTo(currentIndex());
   });
-
-  // JS-assisted snap for phones: CSS scroll-snap alone isn't reliable enough
-  // across mobile browsers here, so once scrolling settles, ease the page
-  // the rest of the way to the nearest item/kuchikomi/supervisor section —
-  // the same "stop exactly on one screen" feel, just guaranteed.
-  {
-    const isPhone = () => window.matchMedia('(max-width:600px)').matches;
-    const snapPages = pages.filter(p => p.classList.contains('item'));
-    let snapTimer;
-    window.addEventListener('scroll', () => {
-      if (!isPhone() || !snapPages.length) return;
-      clearTimeout(snapTimer);
-      snapTimer = setTimeout(() => {
-        if (!isPhone()) return;
-        const firstTop = snapPages[0].offsetTop;
-        const viewportCenter = window.scrollY + window.innerHeight / 2;
-        if (viewportCenter < firstTop) return; // more than half the screen is still cover
-        let nearest = snapPages[0], minDist = Infinity;
-        snapPages.forEach(p => {
-          const d = Math.abs(p.offsetTop - window.scrollY);
-          if (d < minDist) { minDist = d; nearest = p; }
-        });
-        if (minDist > 4) nearest.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 140);
-    }, { passive: true });
-  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') nextPage();
