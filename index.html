@@ -102,10 +102,10 @@
      freely like the cover — forcing 100dvh there made the (much wider,
      so much taller) photo overflow badly. ---- */
   @media (max-width:600px){
-    html{ scroll-snap-type:y mandatory; }
+    html, body{ scroll-snap-type:y mandatory; }
     .page.item{
       height:100dvh;
-      overflow-y:auto;
+      overflow-y:hidden;
       scroll-snap-align:start;
       scroll-snap-stop:always;
     }
@@ -894,7 +894,8 @@
   /* Fixed 3 columns on PC — the flexible 260px basis above grows unevenly
      and leaves an awkward wrap depending on window width. */
   @media (min-width:821px){
-    .kk-card{ flex:0 0 calc(33.333% - 10px); }
+    .kk-card{ flex:0 0 calc(50% - 7px); }
+    .kk-card.span-full{ flex-basis:100%; }
   }
   .kk-card.hidden{ display:none; }
   .kk-card .kk-quote{
@@ -1552,6 +1553,31 @@
     if (!isStackedLayout()) goTo(currentIndex());
   });
 
+  // JS-assisted snap for phones: CSS scroll-snap alone isn't reliable enough
+  // across mobile browsers here, so once scrolling settles, ease the page
+  // the rest of the way to the nearest item/kuchikomi/supervisor section —
+  // the same "stop exactly on one screen" feel, just guaranteed.
+  {
+    const isPhone = () => window.matchMedia('(max-width:600px)').matches;
+    const snapPages = pages.filter(p => p.classList.contains('item'));
+    let snapTimer;
+    window.addEventListener('scroll', () => {
+      if (!isPhone() || !snapPages.length) return;
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => {
+        if (!isPhone()) return;
+        const firstTop = snapPages[0].offsetTop;
+        if (window.scrollY < firstTop - 60) return; // still free-scrolling the cover
+        let nearest = snapPages[0], minDist = Infinity;
+        snapPages.forEach(p => {
+          const d = Math.abs(p.offsetTop - window.scrollY);
+          if (d < minDist) { minDist = d; nearest = p; }
+        });
+        if (minDist > 4) nearest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 140);
+    }, { passive: true });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') nextPage();
     if (e.key === 'ArrowLeft') prevPage();
@@ -1635,20 +1661,31 @@
   const kkCards = document.querySelectorAll('.kk-card');
   const kkEmpty = document.getElementById('kkEmpty');
   let kkActive = null;
+
+  function applyKkFilter(){
+    const visible = [];
+    kkCards.forEach(c => {
+      const show = !kkActive || c.dataset.tags === kkActive;
+      c.classList.toggle('hidden', !show);
+      c.classList.remove('span-full');
+      if (show) visible.push(c);
+    });
+    // On the 2-column PC grid, an odd one out left alone on its own row
+    // reads as a mistake — have it fill the row instead of leaving the
+    // other half empty.
+    if (visible.length % 2 === 1) visible[visible.length - 1].classList.add('span-full');
+    kkEmpty.classList.toggle('show', visible.length === 0);
+  }
+
   kkTagBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const tag = btn.dataset.tag;
       kkActive = (kkActive === tag) ? null : tag;
       kkTagBtns.forEach(b => b.classList.toggle('active', b.dataset.tag === kkActive));
-      let visibleCount = 0;
-      kkCards.forEach(c => {
-        const show = !kkActive || c.dataset.tags === kkActive;
-        c.classList.toggle('hidden', !show);
-        if (show) visibleCount++;
-      });
-      kkEmpty.classList.toggle('show', visibleCount === 0);
+      applyKkFilter();
     });
   });
+  applyKkFilter();
 </script>
 
 </body>
