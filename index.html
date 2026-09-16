@@ -758,6 +758,37 @@
     .kk-card .kk-quote{ font-size:13.5px; }
   }
 
+  /* ---- edge arrows: only on wide PC windows, where there is real margin
+     outside the 1080px content column for them to sit in without overlap ---- */
+  .edge-nav{
+    display:none;
+    position:fixed;
+    top:50%;
+    transform:translateY(-50%);
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#fff;
+    border:1px solid var(--line);
+    box-shadow:0 8px 20px rgba(34,28,23,0.12);
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--ink);
+    z-index:14;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, background .2s ease;
+  }
+  .edge-nav.visible{ opacity:1; pointer-events:auto; }
+  .edge-nav:hover{ background:var(--paper); }
+  .edge-nav svg{ width:17px; height:17px; }
+  .edge-nav.prev{ left:16px; }
+  .edge-nav.next{ right:16px; }
+  @media (min-width:1180px){
+    .edge-nav{ display:flex; }
+  }
+
   /* ---- toc-jump label (make it read as "index", not just a page counter) ---- */
   .toc-jump .label{
     font-family:"Zen Kaku Gothic New", sans-serif;
@@ -847,6 +878,13 @@
   <svg viewBox="0 0 16 16" fill="none"><path d="M2.5 4.5H13.5M2.5 8H13.5M2.5 11.5H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   <span class="label">一覧</span>
   <span class="num" id="tocJumpNum">02 / 10</span>
+</button>
+
+<button class="edge-nav prev" id="edgePrev" onclick="prevPage()" aria-label="前のページへ">
+  <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+<button class="edge-nav next" id="edgeNext" onclick="nextPage()" aria-label="次のページへ">
+  <svg viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
 
 <div class="page-menu-backdrop" id="pageMenuBackdrop" onclick="closeMenu()"></div>
@@ -1393,6 +1431,8 @@
   const total = pages.length;
   const countEl = document.getElementById('count');
   const tocJumpEl = document.getElementById('tocJump');
+  const edgePrevEl = document.getElementById('edgePrev');
+  const edgeNextEl = document.getElementById('edgeNext');
   const tocJumpNumEl = document.getElementById('tocJumpNum');
   const pageMenu = document.getElementById('pageMenu');
   const pageMenuBackdrop = document.getElementById('pageMenuBackdrop');
@@ -1409,6 +1449,8 @@
     countEl.textContent = pad(idx + 1) + ' / ' + pad(total);
     tocJumpNumEl.textContent = pad(idx + 1) + ' / ' + pad(total);
     tocJumpEl.classList.toggle('visible', idx > 0);
+    edgePrevEl.classList.toggle('visible', idx > 0);
+    edgeNextEl.classList.toggle('visible', idx < total - 1);
     menuItems.forEach((el, i) => el.classList.toggle('current', i === idx));
   }
 
