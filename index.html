@@ -704,6 +704,16 @@
   @media (max-width:820px){
     .toc{ gap:16px; }
     .toc button{ flex:0 0 calc(33.333% - 11px); }
+    /* Every section repeats "リラックスグッズ特集" in its masthead — fine as a
+       page-turn cue on PC, just clutter once you're scrolling one long page. */
+    .masthead .brandmark{ display:none; }
+    /* The hand-drawn green pill around the eyebrow (SELF CARE etc.) reads as
+       a smudge at phone size — keep the label, drop the outline. */
+    .item-text .eyebrow{
+      border:none;
+      border-radius:0;
+      padding:0;
+    }
   }
 
   @media (max-width:600px){
@@ -755,7 +765,7 @@
     .item-photo-wrap{ padding:6px 6px 16px; }
     .item-photo{ aspect-ratio:16/6; }
     .item-photo-cap{ font-size:12.5px; }
-    .item-text .eyebrow{ font-size:11px; margin-bottom:4px; padding:2px 9px; }
+    .item-text .eyebrow{ font-size:11px; margin-bottom:4px; }
     .item-text .catch{ font-size:12.5px; margin:0 0 6px; }
     .item-points{ gap:3px; margin:0 0 7px; }
     .item-points li{ font-size:12px; }
@@ -840,6 +850,7 @@
   .kk-cards{
     display:flex;
     flex-wrap:wrap;
+    justify-content:center;
     gap:14px;
   }
   .kk-card{
