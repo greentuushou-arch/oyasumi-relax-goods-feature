@@ -102,10 +102,10 @@
      freely like the cover — forcing 100dvh there made the (much wider,
      so much taller) photo overflow badly. ---- */
   @media (max-width:600px){
-    html, body{ scroll-snap-type:y mandatory; }
+    html, body{ scroll-snap-type:y proximity; }
     .page.item{
       height:100dvh;
-      overflow-y:hidden;
+      overflow-y:auto;
       scroll-snap-align:start;
       scroll-snap-stop:always;
     }
@@ -800,22 +800,22 @@
     .toc button .label .n{ font-size:16px; }
     .toc button .label .t{ font-size:11.5px; }
 
-    .item .page-inner{ padding-top:46px; padding-bottom:38px; }
+    .item .page-inner{ padding-top:44px; padding-bottom:32px; }
     .item-grid{ gap:8px; }
     .item-photo-wrap{ padding:6px 6px 16px; }
-    .item-photo{ aspect-ratio:16/6; }
+    .item-photo{ aspect-ratio:16/8; }
     .item-photo-cap{ font-size:12.5px; }
-    .item-text .eyebrow{ font-size:11px; margin-bottom:4px; }
-    .item-text .catch{ font-size:12.5px; margin:0 0 6px; }
-    .item-points{ gap:3px; margin:0 0 7px; }
-    .item-points li{ font-size:12px; }
-    .item-points li .num{ width:17px; height:17px; font-size:10px; }
-    .fact-box{ padding:6px 10px; margin-bottom:6px; }
-    .fact-box dl{ gap:2px 10px; font-size:11.5px; }
+    .item-text .eyebrow{ font-size:11.5px; margin-bottom:4px; }
+    .item-text .catch{ font-size:14px; margin:0 0 6px; }
+    .item-points{ gap:4px; margin:0 0 7px; }
+    .item-points li{ font-size:13.5px; }
+    .item-points li .num{ width:18px; height:18px; font-size:10.5px; }
+    .fact-box{ padding:7px 11px; margin-bottom:6px; }
+    .fact-box dl{ gap:2px 10px; font-size:12.5px; }
     .item-bottom{ padding-top:6px; gap:10px; }
-    .item-bottom .price{ font-size:18px; }
-    .item-bottom .cta{ padding:9px 16px; font-size:13px; }
-    .review-cta{ margin-top:4px; padding:8px 12px; font-size:12.5px; }
+    .item-bottom .price{ font-size:20px; }
+    .item-bottom .cta{ padding:9px 16px; font-size:14px; }
+    .review-cta{ margin-top:4px; padding:8px 12px; font-size:13px; }
     .review-cta strong{ font-size:15px; }
     .sample-note{ margin-top:5px; font-size:10.5px; }
 
@@ -1578,7 +1578,8 @@
       snapTimer = setTimeout(() => {
         if (!isPhone()) return;
         const firstTop = snapPages[0].offsetTop;
-        if (window.scrollY < firstTop - 60) return; // still free-scrolling the cover
+        const viewportCenter = window.scrollY + window.innerHeight / 2;
+        if (viewportCenter < firstTop) return; // more than half the screen is still cover
         let nearest = snapPages[0], minDist = Infinity;
         snapPages.forEach(p => {
           const d = Math.abs(p.offsetTop - window.scrollY);
